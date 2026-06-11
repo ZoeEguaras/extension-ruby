@@ -55,12 +55,19 @@ class Backstore::ReportsController < Backstore::BaseController
     end_date   = @end_date ? Date.parse(@end_date) : nil
     today      = Date.today
 
-    # La fecha de fin no puede ser futura
-    end_date = [end_date, today].compact.min if end_date
+    validation_errors = []
+    validation_errors << "La fecha de fin no puede ser mayor que hoy." if end_date && end_date > today
 
     if start_date && end_date
-      # La fecha de fin debe ser mayor o igual a la de inicio
-      end_date = [end_date, start_date].max
+      validation_errors << "La fecha de inicio no puede ser mayor que la fecha de fin." if start_date > end_date
+    elsif start_date && start_date > today
+      validation_errors << "La fecha de inicio no puede ser mayor que hoy."
+    end
+
+    if validation_errors.any?
+      flash.now[:alert] = validation_errors.to_sentence
+      @date_range = nil
+    elsif start_date && end_date
       @date_range = start_date..end_date
     elsif start_date
       @date_range = start_date..today
@@ -74,7 +81,7 @@ class Backstore::ReportsController < Backstore::BaseController
     @start_date = start_date&.to_s
     @end_date   = end_date&.to_s
 
-    # Nombre de género para mostrar en filtros (HTML/PDF)
+    # Nombre de género para mostrar en filtros
     @genre_name = @genre_id.present? ? Genre.find_by(id: @genre_id)&.name : nil
   rescue ArgumentError
     @date_range = nil
@@ -83,7 +90,10 @@ class Backstore::ReportsController < Backstore::BaseController
   def load_sales_scope
     base_scope = Sale.includes(:sale_items)
 
-    base_scope = base_scope.where(created_at: @date_range) if @date_range
+    if @date_range
+      timestamp_range = @date_range.begin.beginning_of_day..@date_range.end.end_of_day
+      base_scope = base_scope.where(created_at: timestamp_range)
+    end
     base_scope = base_scope.where(employee_email: @employee) if @employee
 
     if @genre_id

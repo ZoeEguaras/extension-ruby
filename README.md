@@ -25,7 +25,6 @@ Desarrollado por Valentín Nuñez, Uziel Juárez Piñeiro y Zoe Eguaras
 * Turbo + Stimulus → Interactividad tipo SPA
 * Bootstrap 5
 
----
 
 ## Decisiones de Diseño
 
@@ -89,47 +88,43 @@ Desarrollado por Valentín Nuñez, Uziel Juárez Piñeiro y Zoe Eguaras
 ### Paginación
 
 * Para la paginación tanto del backstore como del storefront se utilizó **Kaminari**.
----
 
-### Reportes y facturas
+## Módulo de Reportes
 
-* Para gráficos y agrupamientos de reportes se utilizaron:
+El sistema cuenta con una sección de reportes separada de la gestión de ventas, que ofrece gráficos claros, legibles y correctamente rotulados. Para su implementaciòn se hizo uso de **Chartkick** y **Groupdate**.
 
-  * **Chartkick**
-  * **Groupdate**
-* Para exportar tanto facturas como reportes en **PDF**, se integró **WickedPDF** junto a **wkhtmltopdf**.
+### Acceso y Permisos
+1. **Ingresá a la aplicación** con tus credenciales.
+2. **Accedé a la sección "Reportes"** desde el menú de administración (backstore).
+3. URL directa: `http://localhost:3000/backstore/reports`
 
-#### Reportes de ventas
-
-El sistema cuenta con **varios tipos de reportes**, siempre con los mismos filtros generales:
-
-* **Fecha desde / hasta**
-* **Empleado**
-* **Género de producto**
-
-Los filtros se pueden **combinar en todas las vistas**.
-
-#### Dashboard rápido (resumen general)
-
-Al ingresar a la sección de reportes, se muestra un **resumen numérico** con:
-
-* Total recaudado
-* Ventas activas
-* Productos vendidos en ventas activas
-* Monto perdido por cancelaciones
-* Ventas canceladas
-* Productos involucrados en ventas canceladas
-
-Este **dashboard** es el **único reporte que puede exportarse a PDF**.
-Todos los demás son gráficos interactivos que *no* se exportan.
-
-**Ventas en el tiempo** → Muestra un **gráfico de puntos** que representa la evolución de las ventas a lo largo del tiempo.
-
-**Ventas por producto** → Muestra cuántas veces fue vendido cada producto.
-
-**Ventas por empleado** → Permite ver cuánto vendió cada empleado.
+**Permisos requeridos:** Solo **Administradores** y **Gerentes** pueden acceder a esta sección.
 
 ---
+
+### Filtros disponibles
+Los filtros se pueden **combinar entre sí** para un análisis más detallado y aplican a todas las vistas:
+* **Fecha desde / Hasta:** Rango de fechas para las ventas (no incluye fechas futuras).
+* **Empleado:** Filtra por el email del vendedor que realizó la venta.
+* **Género:** Filtra productos por género musical.
+* **Tipo de producto:** Filtra por Vinilo o CD.
+
+---
+
+### Métricas y Gráficos (Ventas Activas)
+*De acuerdo a los requerimientos, las ventas canceladas no se incluyen en los siguientes cálculos:*
+
+#### Resumen numérico (Tarjetas)
+* **Total recaudado:** Suma de todas las ventas en dinero dentro del período.
+* **Cantidad de ventas realizadas:** Número total de transacciones activas.
+* **Promedio de importe por venta:** Total recaudado / cantidad de ventas activas.
+* **Cantidad de productos vendidos:** Número total de ítems vendidos.
+
+#### Análisis visual (Gráficos interactivos)
+* **Ventas por tipo de producto:** Gráfico de pastel (Vinilo vs CD).
+* **Ventas por género musical:** Gráfico de columnas con cantidad de ventas por género.
+* **Top 5 productos más vendidos:** Gráfico de barras con los 5 productos con mayor volumen de salida.
+
 
 ## Instalación del Proyecto
 
@@ -164,16 +159,21 @@ La app queda disponible en:
 
 `http://localhost:3000`
 
----
 
-## Datos de prueba:
+## Generación de Datos de Prueba
 
-**Usuarios:**
+Al ejecutar el comando `db:seed` o configurar la base de datos, se puebla el sistema automáticamente para que los reportes y la tienda tengan datos funcionales e históricos.
 
-- admin@example.com → Administrador
-- ana.gerente@example.com → Gerente
-- sofia.empleado@example.com → Empleado
+### Usuarios de prueba creados
 
-Todos los usuarios del seeder usan la contraseña 12345678.
+| Email                     | Rol            | Contraseña |
+|--------------------------|----------------|------------|
+| admin@example.com        | Administrador  | 12345678   |
+| ana.gerente@example.com  | Gerente        | 12345678   |
+| sofia.empleado@example.com | Empleado     | 12345678   |
 
----
+### Datos adicionales autogenerados
+- **Géneros musicales:** Rock, Pop, Jazz, Metal, Electrónica, entre otros.
+- **Productos:** Varios vinilos y CDs asociados a diferentes géneros con portadas y galerías asignadas.
+- **Ventas:** Transacciones históricas asignadas a los empleados de prueba para alimentar los gráficos y métricas del módulo de reportes.
+

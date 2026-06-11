@@ -2,11 +2,7 @@ puts "🔄 Reset parcial..."
 
 SaleItem.delete_all
 Sale.delete_all
-User.where(email: [
-  "admin@example.com",
-  "ana.gerente@example.com",
-  "sofia.empleado@example.com"
-]).delete_all
+User.delete_all
 
 # =====================================================
 # USUARIOS
@@ -31,10 +27,18 @@ gerente = User.create!(
   role: :gerente
 )
 
-empleado = User.create!(
+empleado1 = User.create!(
   nombre: "Sofía",
   apellido: "Empleado",
   email: "sofia.empleado@example.com",
+  password: password,
+  role: :empleado
+)
+
+empleado2 = User.create!(
+  nombre: "Juan",
+  apellido: "Empleado",
+  email: "juan.empleado@example.com",
   password: password,
   role: :empleado
 )
@@ -69,31 +73,31 @@ end
 puts "💰 Creando ventas..."
 
 sales_data = [
-  { date: "2026-01-05", product: p1, qty: 2, cancelled: false },
-  { date: "2026-01-10", product: p1, qty: 1, cancelled: true },
+  { date: "2026-01-05", product: p1, qty: 2, cancelled: false, employee: empleado2 },
+  { date: "2026-01-10", product: p1, qty: 1, cancelled: true,  employee: empleado2 },
 
-  { date: "2026-01-20", product: p2, qty: 3, cancelled: false },
-  { date: "2026-02-03", product: p2, qty: 1, cancelled: false },
+  { date: "2026-01-20", product: p2, qty: 3, cancelled: false, employee: empleado1 },
+  { date: "2026-02-03", product: p2, qty: 1, cancelled: false, employee: empleado1 },
 
-  { date: "2026-02-14", product: p3, qty: 2, cancelled: true },
-  { date: "2026-02-28", product: p3, qty: 1, cancelled: false },
+  { date: "2026-02-14", product: p3, qty: 2, cancelled: true,  employee: empleado1 },
+  { date: "2026-02-28", product: p3, qty: 1, cancelled: false, employee: empleado1 },
 
-  { date: "2026-03-02", product: p4, qty: 2, cancelled: false },
-  { date: "2026-03-15", product: p4, qty: 1, cancelled: true },
+  { date: "2026-03-02", product: p4, qty: 2, cancelled: false, employee: empleado1 },
+  { date: "2026-03-15", product: p4, qty: 1, cancelled: true,  employee: empleado1 },
 
-  { date: "2026-03-25", product: p5, qty: 3, cancelled: false },
-  { date: "2026-04-01", product: p5, qty: 2, cancelled: false },
+  { date: "2026-03-25", product: p5, qty: 3, cancelled: false, employee: empleado2 },
+  { date: "2026-04-01", product: p5, qty: 2, cancelled: false, employee: empleado1 },
 
-  { date: "2026-04-12", product: p6, qty: 1, cancelled: true },
-  { date: "2026-04-20", product: p6, qty: 4, cancelled: false }
+  { date: "2026-04-12", product: p6, qty: 1, cancelled: true,  employee: empleado1 },
+  { date: "2026-04-20", product: p6, qty: 4, cancelled: false, employee: empleado1 }
 ]
 
 sales_data.each do |data|
   sale = Sale.new(
     client_name: "Cliente Demo",
     client_email: "cliente@demo.com",
-    employee_name: "#{empleado.nombre} #{empleado.apellido}",
-    employee_email: empleado.email,
+    employee_name: "#{data[:employee].nombre} #{data[:employee].apellido}",
+    employee_email: data[:employee].email,
     cancelled: data[:cancelled],
     cancelled_at: data[:cancelled] ? day(data[:date]) + 2.hours : nil,
     created_at: day(data[:date]),
