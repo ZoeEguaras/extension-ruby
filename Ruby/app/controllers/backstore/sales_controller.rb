@@ -62,22 +62,26 @@ class Backstore::SalesController < Backstore::BaseController
     end
 
     respond_to do |format|
-      if @sale.save
-        # Actualizar stock de productos
-        @sale.sale_items.each do |item|
-          product = item.product
-          if product.state_new_item? && !product.retired?
-            # Solo actualizar stock para productos nuevos
-            product.change_stock!(-item.quantity)
-          elsif product.state_used_item?
-            # Para productos usados, marcar como dado de baja (soft delete)
-            product.soft_delete! if product.stock == 1
+      begin
+        Sale.transaction do
+          @sale.save!
+
+          # Actualizar stock de productos
+          @sale.sale_items.each do |item|
+            product = item.product
+            if product.state_new_item? && !product.retired?
+              # Solo actualizar stock para productos nuevos
+              product.change_stock!(-item.quantity)
+            elsif product.state_used_item?
+              # Para productos usados, marcar como dado de baja (soft delete)
+              product.soft_delete! if product.stock == 1
+            end
           end
         end
 
         format.html { redirect_to [:backstore, @sale], notice: "Venta realizada correctamente." }
         format.json { render :show, status: :created, location: [:backstore, @sale] }
-      else
+      rescue ActiveRecord::RecordInvalid
         @sale.sale_items.build if @sale.sale_items.empty?
         format.html { render :new, status: :unprocessable_entity }
         format.json { render json: @sale.errors, status: :unprocessable_entity }

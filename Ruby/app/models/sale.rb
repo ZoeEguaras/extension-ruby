@@ -37,42 +37,44 @@ class Sale < ApplicationRecord
   def cancel!
     return if cancelled?
 
-    # Devolver stock a los productos
-    sale_items.each do |item|
-      product = item.product
-      next unless product # Por si el producto fue eliminado
-      
-      if product.state_new_item?
-        if product.retired?
-          # Si el producto fue dado de baja después de la venta, reactivarlo y devolver stock
+    Sale.transaction do
+      # Devolver stock a los productos
+      sale_items.each do |item|
+        product = item.product
+        next unless product # Por si el producto fue eliminado
+        
+        if product.state_new_item?
+          if product.retired?
+            # Si el producto fue dado de baja después de la venta, reactivarlo y devolver stock
+            product.update_columns(
+              retired: false,
+              retired_at: nil,
+              stock: item.quantity,
+              updated_at: Time.current
+            )
+          else
+            # Devolver stock para productos nuevos activos
+            product.change_stock!(item.quantity)
+          end
+        elsif product.state_used_item? && product.retired?
+          # Para productos usados que fueron dados de baja al venderse, reactivarlos
           product.update_columns(
             retired: false,
             retired_at: nil,
-            stock: item.quantity,
+            stock: 1,
             updated_at: Time.current
           )
-        else
-          # Devolver stock para productos nuevos activos
-          product.change_stock!(item.quantity)
         end
-      elsif product.state_used_item? && product.retired?
-        # Para productos usados que fueron dados de baja al venderse, reactivarlos
-        product.update_columns(
-          retired: false,
-          retired_at: nil,
-          stock: 1,
-          updated_at: Time.current
-        )
       end
-    end
 
-    # Marcar la venta como cancelada
-    current_time = Time.current
-    update_columns(
-      cancelled: true,
-      cancelled_at: current_time,
-      updated_at: current_time
-    )
+      # Marcar la venta como cancelada
+      current_time = Time.current
+      update_columns(
+        cancelled: true,
+        cancelled_at: current_time,
+        updated_at: current_time
+      )
+    end
   end
 
   private
