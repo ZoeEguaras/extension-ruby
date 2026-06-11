@@ -29,6 +29,13 @@
                               { include_blank: "Todos", selected: params[:genre_id] },
                               { class: "form-select" } %>
     </div>
+    <div class="col-md-3">
+      <%= f.label :media_type, "Tipo de producto", class: "form-label" %>
+      <%= f.select :media_type,
+                  options_for_select([["Vinilo", "vinyl"], ["CD", "cd"]], params[:media_type]),
+                  { include_blank: "Todos" },
+                  class: "form-select" %>
+    </div>
     <div class="col-12 d-flex justify-content-end gap-2">
       <%= link_to "Limpiar", request.path, class: "btn btn-outline-dark" %>
       <%= f.submit "Aplicar filtros", class: "btn btn-primary" %>

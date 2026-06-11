@@ -33,9 +33,5 @@ Rails.application.routes.draw do
 
     # Reportes
     get "reports", to: "reports#index", as: :reports
-    get "reports/sales_over_time", to: "reports#sales_over_time", as: :reports_sales_over_time
-    get "reports/sales_by_product", to: "reports#sales_by_product", as: :reports_sales_by_product
-    get "reports/sales_by_employee", to: "reports#sales_by_employee", as: :reports_sales_by_employee
-    get "reports/export_pdf", to: "reports#export_pdf", as: :reports_export_pdf
   end
 end

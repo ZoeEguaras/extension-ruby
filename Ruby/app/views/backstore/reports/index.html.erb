@@ -1,9 +1,5 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
   <h1 class="mb-0">Reportes de ventas</h1>
-  <div class="d-flex gap-2">
-    <%= link_to "Exportar PDF", backstore_reports_export_pdf_path(request.query_parameters),
-                class: "btn btn-outline-dark", target: "_blank" %>
-  </div>
 </div>
 
 <%= render "filters" %>
@@ -18,60 +14,61 @@
 <% end %>
 
 <div class="row g-4">
-  <div class="col-md-4">
+  <div class="col-md-6">
     <div class="card shadow-sm p-3">
-      <h2 class="h6 mb-2">Total recaudado (ventas activas)</h2>
+      <h2 class="h6 mb-2">Total recaudado</h2>
       <p class="h4 mb-0">$ <%= number_with_precision(@total_revenue || 0, precision: 2) %></p>
     </div>
   </div>
-  <div class="col-md-4">
+  <div class="col-md-6">
     <div class="card shadow-sm p-3">
-      <h2 class="h6 mb-2">Ventas activas</h2>
+      <h2 class="h6 mb-2">Cantidad de ventas realizadas</h2>
       <p class="h4 mb-0"><%= @total_sales || 0 %></p>
     </div>
   </div>
-  <div class="col-md-4">
+  <div class="col-md-6">
     <div class="card shadow-sm p-3">
-      <h2 class="h6 mb-2">Productos vendidos (ventas activas)</h2>
+      <h2 class="h6 mb-2">Promedio de importe por venta</h2>
+      <p class="h4 mb-0">
+        $ <%= number_with_precision(@average_sale || 0, precision: 2) %>
+      </p>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card shadow-sm p-3">
+      <h2 class="h6 mb-2">Cantidad de productos vendidos</h2>
       <p class="h4 mb-0"><%= @total_items || 0 %></p>
     </div>
   </div>
 </div>
 
-<div class="row g-4 mt-1">
-  <div class="col-md-4">
-    <div class="card shadow-sm p-3">
-      <h2 class="h6 mb-2">Monto perdido por cancelaciones</h2>
-      <p class="h4 mb-0">$ <%= number_with_precision(@lost_revenue || 0, precision: 2) %></p>
-    </div>
-  </div>
-  <div class="col-md-4">
-    <div class="card shadow-sm p-3">
-      <h2 class="h6 mb-2">Ventas canceladas</h2>
-      <p class="h4 mb-0"><%= @total_cancelled || 0 %></p>
-    </div>
-  </div>
-  <div class="col-md-4">
-    <div class="card shadow-sm p-3">
-      <h2 class="h6 mb-2">Productos en ventas canceladas</h2>
-      <p class="h4 mb-0"><%= @total_cancelled_items || 0 %></p>
-    </div>
-  </div>
+<div class="card shadow-sm p-4 mt-4">
+  <h2 class="h5 mb-3">Ventas por tipo de producto</h2>
+
+  <% if @sales_by_type.present? %>
+    <%= pie_chart @sales_by_type,
+      colors: ["#c20406", "#8a0000"] %>
+  <% else %>
+    <p>No hay datos para mostrar.</p>
+  <% end %>
 </div>
 
 <div class="card shadow-sm p-4 mt-4">
-  <h2 class="h5 mb-3">Reportes disponibles</h2>
-  <ul class="mb-0">
-    <li>
-      <%= link_to "Ventas en el tiempo", backstore_reports_sales_over_time_path(request.query_parameters) %>
-    </li>
-    <li>
-      <%= link_to "Ventas por producto", backstore_reports_sales_by_product_path(request.query_parameters) %>
-    </li>
-    <li>
-      <%= link_to "Ventas por empleado", backstore_reports_sales_by_employee_path(request.query_parameters) %>
-    </li>
-  </ul>
+  <h2 class="h5 mb-3">Ventas por género musical</h2>
+
+  <% if @sales_by_genre.present? %>
+    <%= column_chart @sales_by_genre %>
+  <% else %>
+    <p>No hay datos para mostrar.</p>
+  <% end %>
 </div>
 
+<div class="card shadow-sm p-4 mt-4">
+  <h2 class="h5 mb-3">Top 5 productos más vendidos</h2>
 
+  <% if @top_products.present? %>
+    <%= bar_chart @top_products %>
+  <% else %>
+    <p>No hay datos para mostrar.</p>
+  <% end %>
+</div>

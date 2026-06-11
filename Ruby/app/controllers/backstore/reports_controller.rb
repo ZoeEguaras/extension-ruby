@@ -8,44 +8,34 @@ class Backstore::ReportsController < Backstore::BaseController
     @total_revenue         = @sales_with_items.sum("sale_items.quantity * sale_items.unit_price")
     @total_sales           = @sales.distinct.count
     @total_items           = @sales_with_items.sum("sale_items.quantity")
+    @average_sale          = @total_sales.positive? ? (@total_revenue / @total_sales) : 0
+
     @total_cancelled       = @cancelled_sales.distinct.count
     @total_cancelled_items = @cancelled_sales.joins(:sale_items).sum("sale_items.quantity")
     @lost_revenue          = @cancelled_sales.joins(:sale_items).sum("sale_items.quantity * sale_items.unit_price")
-  end
+    
+    @sales_by_type = @sales
+      .joins(sale_items: :product)
+      .group("products.media_type")
+      .distinct
+      .count("sales.id")
+      .transform_keys do |key|
+        { "vinyl" => "Vinilo", "cd" => "CD" }[key] || key.to_s.titleize
+      end
 
-  def sales_over_time
-    @sales_over_time = @sales_with_items
-      .group_by_day("sales.created_at", range: @date_range)
-      .sum("sale_items.quantity * sale_items.unit_price")
-  end
+    @sales_by_genre = @sales
+      .joins(sale_items: { product: :genres })
+      .group("genres.name")
+      .distinct
+      .count("sales.id")
 
-  def sales_by_product
-    @sales_by_product = @sales_with_items
+    @top_products = @sales_with_items
       .joins(sale_items: :product)
       .group("products.name")
       .sum("sale_items.quantity")
-  end
-
-  def sales_by_employee
-    @sales_by_employee = @sales_with_items
-      .group("sales.employee_name")
-      .sum("sale_items.quantity * sale_items.unit_price")
-  end
-
-  def export_pdf
-    @total_revenue         = @sales_with_items.sum("sale_items.quantity * sale_items.unit_price")
-    @total_sales           = @sales.distinct.count
-    @total_items           = @sales_with_items.sum("sale_items.quantity")
-    @total_cancelled       = @cancelled_sales.distinct.count
-    @total_cancelled_items = @cancelled_sales.joins(:sale_items).sum("sale_items.quantity")
-    @lost_revenue          = @cancelled_sales.joins(:sale_items).sum("sale_items.quantity * sale_items.unit_price")
-
-    render pdf: "reporte_ventas",
-           template: "backstore/reports/index",
-           formats: [:pdf],
-           layout: "pdf",
-           page_size: "A4",
-           margin: { top: 10, bottom: 10, left: 10, right: 10 }
+      .sort_by { |_, quantity| -quantity }
+      .first(5)
+      .to_h
   end
 
   private
@@ -59,6 +49,7 @@ class Backstore::ReportsController < Backstore::BaseController
     @end_date   = params[:end_date].presence
     @employee   = params[:employee_email].presence
     @genre_id   = params[:genre_id].presence
+    @media_type = params[:media_type].presence
 
     start_date = @start_date ? Date.parse(@start_date) : nil
     end_date   = @end_date ? Date.parse(@end_date) : nil
@@ -91,15 +82,22 @@ class Backstore::ReportsController < Backstore::BaseController
 
   def load_sales_scope
     base_scope = Sale.includes(:sale_items)
+
     base_scope = base_scope.where(created_at: @date_range) if @date_range
     base_scope = base_scope.where(employee_email: @employee) if @employee
 
     if @genre_id
-      base_scope = base_scope.joins(sale_items: { product: :genres }).where(genres: { id: @genre_id })
+      base_scope = base_scope.joins(sale_items: { product: :genres })
+                            .where(genres: { id: @genre_id })
     end
 
-    @sales          = base_scope.where(cancelled: false)
-    @cancelled_sales = base_scope.where(cancelled: true)
+    if @media_type
+      base_scope = base_scope.joins(sale_items: :product)
+                            .where(products: { media_type: @media_type })
+    end
+
+    @sales            = base_scope.where(cancelled: false)
+    @cancelled_sales  = base_scope.where(cancelled: true)
     @sales_with_items = @sales.joins(:sale_items)
   end
 
