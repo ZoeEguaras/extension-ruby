@@ -395,8 +395,10 @@ GEM
 
 PLATFORMS
   aarch64-linux
+  aarch64-linux-gnu
   x64-mingw-ucrt
   x86_64-linux
+  x86_64-linux-gnu
 
 DEPENDENCIES
   bootsnap

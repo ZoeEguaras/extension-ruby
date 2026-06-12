@@ -9,10 +9,6 @@ class Backstore::ReportsController < Backstore::BaseController
     @total_sales           = @sales.distinct.count
     @total_items           = @sales_with_items.sum("sale_items.quantity")
     @average_sale          = @total_sales.positive? ? (@total_revenue / @total_sales) : 0
-
-    @total_cancelled       = @cancelled_sales.distinct.count
-    @total_cancelled_items = @cancelled_sales.joins(:sale_items).sum("sale_items.quantity")
-    @lost_revenue          = @cancelled_sales.joins(:sale_items).sum("sale_items.quantity * sale_items.unit_price")
     
     @sales_by_type = @sales
       .joins(sale_items: :product)
@@ -107,11 +103,9 @@ class Backstore::ReportsController < Backstore::BaseController
       base_scope = base_scope.where(products: { media_type: @media_type }) if @media_type
     end
 
-    # 4. Definición de scopes finales (distinct para evitar duplicación)
-    @sales           = base_scope.where(cancelled: false).distinct
-    @cancelled_sales = base_scope.where(cancelled: true).distinct
-    
-    @sales_with_items = base_scope.where(cancelled: false)
+    # 4. Definición de scopes finales
+    @sales            = base_scope.where(cancelled: false).distinct # (ventas únicas)
+    @sales_with_items = base_scope.where(cancelled: false).joins(:sale_items) # (se necesitan TODOS los ítems)
   end
 
   def load_employee_emails

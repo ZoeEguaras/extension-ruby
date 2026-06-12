@@ -172,13 +172,9 @@ p1, p2, p3, p4, p5, p6 = new_products_pool.first(6)
 # =====================================================
 puts "💰 Procesando ventas históricas..."
 
-def day(date_str, hour = 12)
-  Time.parse("#{date_str} #{hour}:00:00")
-end
-
-def safe_qty(product, requested)
-  [requested, product.stock.to_i].min
-end
+# Trasladamos los helpers a Lambdas (Procs) para un diseño de script top-level super moderno
+parse_day = ->(date_str, hour = 12) { Time.parse("#{date_str} #{hour}:00:00") }
+calc_qty  = ->(product, requested) { [requested, product.stock.to_i].min }
 
 sales_data = [
   { date: "2026-01-05", product: p1, qty: 2, cancelled: false, employee: empleado2 },
@@ -201,28 +197,31 @@ sales_data = [
 ]
 
 sales_data.each do |data|
+  emp = data[:employee]
+  current_product = data[:product]
+
   sale = Sale.new(
     client_name:    "Cliente Demo",
     client_email:   "cliente@demo.com",
-    employee_name:  "#{data[:employee].nombre} #{data[:employee].apellido}".strip,
-    employee_email: data[:employee].email,
+    employee_name:  "#{emp.nombre} #{emp.apellido}".strip,
+    employee_email: emp.email,
     cancelled:      data[:cancelled],
-    cancelled_at:   data[:cancelled] ? day(data[:date]) + 2.hours : nil,
-    created_at:     day(data[:date]),
-    updated_at:     day(data[:date])
+    cancelled_at:   data[:cancelled] ? parse_day.call(data[:date], 14) : nil, # Ejemplo 14hs para cancelado
+    created_at:     parse_day.call(data[:date]),
+    updated_at:     parse_day.call(data[:date])
   )
 
   sale.save!(validate: false)
 
   SaleItem.create!(
     sale:       sale,
-    product:    data[:product],
-    quantity:   safe_qty(data[:product], data[:qty]),
-    unit_price: data[:product].unit_price
+    product:    current_product,
+    quantity:   calc_qty.call(current_product, data[:qty]),
+    unit_price: current_product.unit_price
   )
 end
 
 puts "Ventas registradas: #{Sale.count}"
 puts "Items de venta asociados: #{SaleItem.count}"
 
-puts "✅ SEEDS COMPLETAMENTE CARGADAS Y CONFIGURADAS (Solo 4 usuarios)"
+puts "✅ SEEDS CARGADAS Y CONFIGURADAS"
