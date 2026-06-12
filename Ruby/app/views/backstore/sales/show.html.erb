@@ -76,20 +76,26 @@
             <tr>
               <th>Producto</th>
               <th class="text-center">Cantidad</th>
-              <th class="text-end">Precio unitario</th>
-              <th class="text-end">Subtotal</th>
+              <th class="text-center">Precio unitario</th>
+              <th class="text-center">Subtotal</th>
             </tr>
           </thead>
           <tbody>
             <% @sale.sale_items.each do |item| %>
               <tr>
                 <td>
-                  <strong><%= item.product.name %></strong>
-                  <div class="small text-muted">Autor: <%= item.product.author %></div>
+                  <strong class="d-block mb-2"><%= item.product.name %></strong>
+                  <div class="small text-muted mb-1">
+                    <%= item.product.author %>
+                    <span class="text-nowrap">· <%= item.product.media_type == "vinyl" ? "Vinilo" : "CD" %></span>
+                    <% if item.product.genres.any? %>
+                      <span class="text-nowrap">· <%= item.product.genres.limit(3).map(&:name).join(', ') %><%= ' y más' if item.product.genres.size > 3 %></span>
+                    <% end %>
+                  </div>
                 </td>
-                <td class="text-center"><%= item.quantity %></td>
-                <td class="text-end">$ <%= number_with_precision(item.unit_price, precision: 2) %></td>
-                <td class="text-end"><strong>$ <%= number_with_precision(item.subtotal, precision: 2) %></strong></td>
+                <td class="text-center align-middle"><%= item.quantity %></td>
+                <td class="text-center align-middle">$ <%= number_with_precision(item.unit_price, precision: 2) %></td>
+                <td class="text-center align-middle"><strong>$ <%= number_with_precision(item.subtotal, precision: 2) %></strong></td>
               </tr>
             <% end %>
           </tbody>

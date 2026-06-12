@@ -69,6 +69,9 @@
             <td style="padding: 8px; border: 1px solid #000;">
               <strong><%= item.product.name %></strong><br>
               <span style="font-size: 11px; color: #666;">Autor: <%= item.product.author %></span>
+              <% if item.product.genres.any? %>
+                <div style="font-size: 10px; color: #666; margin-top: 4px;">Géneros: <%= item.product.genres.map(&:name).join(', ') %></div>
+              <% end %>
             </td>
             <td style="padding: 8px; border: 1px solid #000; text-align: center;"><%= item.quantity %></td>
             <td style="padding: 8px; border: 1px solid #000; text-align: right;">$ <%= number_with_precision(item.unit_price, precision: 2) %></td>
