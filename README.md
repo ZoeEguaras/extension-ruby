@@ -94,7 +94,7 @@ Desarrollado por Valentín Nuñez, Uziel Juárez Piñeiro y Zoe Eguaras
 El sistema cuenta con una sección de reportes separada de la gestión de ventas, que ofrece gráficos claros, legibles y correctamente rotulados. Para su implementaciòn se hizo uso de **Chartkick** y **Groupdate**.
 
 ### Acceso y Permisos
-1. **Ingresá a la aplicación** con tus credenciales.
+1. **Ingresá a la aplicación** como administrador o gerente.
 2. **Accedé a la sección "Reportes"** desde el menú de administración (backstore).
 3. URL directa: `http://localhost:3000/backstore/reports`
 
