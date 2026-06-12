@@ -144,7 +144,7 @@ Por lo tanto, antes de ejecutar las seeds o iniciar el servidor, es indispensabl
 
 ```bash
 git clone <url>
-cd <nombre-del-proyecto>
+cd extension-ruby/Ruby
 ```
 
 ### 2. Instalar gems
