@@ -125,6 +125,18 @@ Los filtros se pueden **combinar entre sí** para un análisis más detallado y 
 * **Ventas por género musical:** Gráfico de columnas con cantidad de ventas por género.
 * **Top 5 productos más vendidos:** Gráfico de barras con los 5 productos con mayor volumen de salida.
 
+## Requisitos Previos (Procesamiento de Imágenes)
+
+Si bien las bibliotecas de Ruby se gestionan automáticamente a través del `Gemfile` con `bundle install`, la gema `image_processing` (utilizada por Active Storage para generar las variantes de las portadas) actúa como un puente y requiere que el sistema operativo disponga de un procesador gráfico nativo.
+
+Por lo tanto, antes de ejecutar las seeds o iniciar el servidor, es indispensable instalar la herramienta en la máquina anfitriona:
+
+* **En Ubuntu / Debian (Linux):** `sudo apt update && sudo apt install libvips-tools -y`
+
+* **En macOS (usando Homebrew):** `brew install vips`
+
+* **En Windows:** Se recomienda seguir la instalación a través de WSL2 (Ubuntu) para garantizar la compatibilidad de los binarios de `vips`.
+
 
 ## Instalación del Proyecto
 
@@ -171,6 +183,7 @@ Al ejecutar el comando `db:seed` o configurar la base de datos, se puebla el sis
 | admin@example.com        | Administrador  | 12345678   |
 | ana.gerente@example.com  | Gerente        | 12345678   |
 | sofia.empleado@example.com | Empleado     | 12345678   |
+| juan.empleado@example.com  | Empleado       | 12345678   |
 
 ### Datos adicionales autogenerados
 - **Géneros musicales:** Rock, Pop, Jazz, Metal, Electrónica, entre otros.

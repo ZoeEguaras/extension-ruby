@@ -72,23 +72,43 @@ puts "Géneros creados: #{Genre.count}"
 # 3. CONFIGURACIÓN DE PORTADAS Y AUDIOS (Active Storage)
 # =====================================================
 
-image_dir = Rails.root.join("app/assets/images/seeds")
-audio_dir = Rails.root.join("app/assets/audio/seeds")
+image_dir = Pathname.new(File.expand_path("../../Ruby/app/assets/images/seeds", __dir__))
+audio_dir = Pathname.new(File.expand_path("../../Ruby/app/assets/audio/seeds", __dir__))
 
+puts "📁 Buscando imágenes reales en: #{image_dir}"
+
+# 1. Mapeamos los audios físicos reales en minúsculas
 audio_by_key = {}
-Dir[audio_dir.join("*.mp3")].sort.each do |path|
-  key = File.basename(path, ".mp3")
-  audio_by_key[key] = Pathname.new(path)
+if Dir.exist?(audio_dir)
+  Dir[audio_dir.join("*.mp3")].each do |path|
+    key = File.basename(path, ".mp3").downcase.strip
+    audio_by_key[key] = Pathname.new(path)
+  end
 end
 
-# Definición de álbumes comerciales
+# 2. Mapeamos las imágenes físicas reales (soporta cualquier extensión común)
+image_by_key = {}
+if Dir.exist?(image_dir)
+  Dir[image_dir.join("*.{webp,png,jpg,jpeg,WEBP,PNG,JPG,JPEG}")].each do |path|
+    ext = File.extname(path)
+    key = File.basename(path, ext).downcase.strip
+    image_by_key[key] = Pathname.new(path)
+  end
+else
+  puts "❌ ERROR CRÍTICO: La carpeta #{image_dir} no existe en el disco."
+end
+
+# Imprimir un par de imágenes encontradas para espiar qué nombres tienen
+puts "📸 Imágenes encontradas en disco: #{image_by_key.keys.first(3)}... (Total: #{image_by_key.size})"
+
+# Tu array original de álbumes comerciales
 albums = [
   { key: "Beatles-Abbey-Road",                 artist: "The Beatles",           title: "Abbey Road",                               genres: ["Rock"],                 state: :new_item },
   { key: "Black-Sabbath-Black-Sabbath",         artist: "Black Sabbath",          title: "Black Sabbath",                             genres: ["Metal", "Rock"],        state: :new_item },
   { key: "1971-Whos-Next",                      artist: "The Who",                title: "Who's Next",                               genres: ["Rock"],                 state: :new_item },
   { key: "Bob-Dylan-Freewheelin-Bob-Dylan",     artist: "Bob Dylan",              title: "The Freewheelin' Bob Dylan",               genres: ["Folk", "Rock"],         state: :new_item },
   { key: "Carole-King-Tapestry",                artist: "Carole King",            title: "Tapestry",                                 genres: ["Pop", "Folk"],          state: :new_item },
-  { key: "Joy-Division-Unknown-Pleasures",      artist: "Joy Division",           title: "Unknown Pleasures",                         genres: ["Rock", "Alternativo"],  state: :new_item },
+  { key: "Joy-Division-Unknown-Pleasures",       artist: "Joy Division",           title: "Unknown Pleasures",                         genres: ["Rock", "Alternativo"],  state: :new_item },
   { key: "Pink-Floyd-Dark-Side-of-the-Moon",    artist: "Pink Floyd",             title: "The Dark Side Of The Moon",                 genres: ["Rock", "Progresivo"],   state: :used_item },
   { key: "Notorious-BIG-ready-to-die",          artist: "The Notorious B.I.G.",   title: "Ready To Die",                             genres: ["Hip Hop"],              state: :new_item },
   { key: "Patti-Smith-Horses",                  artist: "Patti Smith",            title: "Horses",                                   genres: ["Rock", "Punk"],         state: :new_item },
@@ -115,10 +135,12 @@ new_products_pool = []
 puts "📀 Creando catálogo de productos (25)..."
 
 albums.each do |album|
-  image_path = image_dir.join("#{album[:key]}.webp")
+  # Normalizamos la key del loop quitándole espacios raros y pasándola a minúsculas
+  clean_key = album[:key].to_s.downcase.strip
+  image_path = image_by_key[clean_key]
 
-  unless File.exist?(image_path)
-    puts "⚠️  Falta imagen para #{album[:key]}, se saltea el producto."
+  unless image_path && File.exist?(image_path)
+    puts "⚠️  Falta imagen para '#{album[:key]}' (buscada como '#{clean_key}'), se saltea el producto."
     next
   end
 
@@ -143,11 +165,12 @@ albums.each do |album|
   product.cover_image.attach(
     io: File.open(image_path),
     filename: File.basename(image_path),
-    content_type: "image/webp"
+    content_type: "image/#{File.extname(image_path).delete('.')}"
   )
 
   if state == :used_item
-    audio_path = audio_by_key[album[:key]]
+    clean_audio_key = album[:key].to_s.downcase.strip
+    audio_path = audio_by_key[clean_audio_key]
     if audio_path && File.exist?(audio_path)
       product.audio_preview.attach(
         io: File.open(audio_path),
@@ -162,10 +185,18 @@ albums.each do |album|
   end
 end
 
-puts "Productos guardados: #{Product.count}"
+puts "Productos guardados de forma dinámica: #{Product.count}"
 
-raise "Error: El catálogo no generó productos válidos para las ventas fijos." if new_products_pool.size < 6
-p1, p2, p3, p4, p5, p6 = new_products_pool.first(6)
+# =====================================================
+# 3.5 ASIGNACIÓN DE VARIABLES ASOCIADAS PARA LAS VENTAS
+# =====================================================
+# Recuperamos los productos específicos requeridos por las ventas fijas usando su título exacto
+p1 = Product.find_by(name: "Abbey Road")
+p2 = Product.find_by(name: "Black Sabbath")
+p3 = Product.find_by(name: "Who's Next")
+p4 = Product.find_by(name: "The Freewheelin' Bob Dylan")
+p5 = Product.find_by(name: "Tapestry")
+p6 = Product.find_by(name: "Unknown Pleasures")
 
 # =====================================================
 # 4. MÓDULO DE VENTAS
@@ -174,7 +205,7 @@ puts "💰 Procesando ventas históricas..."
 
 # Trasladamos los helpers a Lambdas (Procs) para un diseño de script top-level super moderno
 parse_day = ->(date_str, hour = 12) { Time.parse("#{date_str} #{hour}:00:00") }
-calc_qty  = ->(product, requested) { [requested, product.stock.to_i].min }
+calc_qty  = ->(product, requested) { [requested, product&.stock.to_i || 0].min }
 
 sales_data = [
   { date: "2026-01-05", product: p1, qty: 2, cancelled: false, employee: empleado2 },
@@ -199,6 +230,9 @@ sales_data = [
 sales_data.each do |data|
   emp = data[:employee]
   current_product = data[:product]
+  
+  # Salvavidas por si un producto requerido falló en el catálogo
+  next if current_product.nil?
 
   sale = Sale.new(
     client_name:    "Cliente Demo",
@@ -206,7 +240,7 @@ sales_data.each do |data|
     employee_name:  "#{emp.nombre} #{emp.apellido}".strip,
     employee_email: emp.email,
     cancelled:      data[:cancelled],
-    cancelled_at:   data[:cancelled] ? parse_day.call(data[:date], 14) : nil, # Ejemplo 14hs para cancelado
+    cancelled_at:   data[:cancelled] ? parse_day.call(data[:date], 14) : nil,
     created_at:     parse_day.call(data[:date]),
     updated_at:     parse_day.call(data[:date])
   )
