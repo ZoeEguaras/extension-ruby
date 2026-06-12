@@ -4,7 +4,7 @@
 
 <%= render "filters" %>
 
-<% if (@total_sales.to_i + @total_cancelled.to_i).zero? %>
+<% if @total_sales.to_i.zero? %>
   <div class="card shadow-sm p-4 mb-4">
     <p class="mb-0">
       No se encontraron ventas para los filtros seleccionados.
