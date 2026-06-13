@@ -86,24 +86,24 @@ class Backstore::ReportsController < Backstore::BaseController
   def load_sales_scope
     base_scope = Sale.includes(:sale_items)
 
-    # 1. Filtro por rango de fechas
+    # Filtro por rango de fechas
     if @date_range
       timestamp_range = @date_range.begin.beginning_of_day..@date_range.end.end_of_day
       base_scope = base_scope.where(created_at: timestamp_range)
     end
 
-    # 2. Filtro por empleado
+    # Filtro por empleado
     base_scope = base_scope.where(employee_email: @employee) if @employee
 
-    # 3. Si se pide género o tipo de medio, se hace un único join unificado
-    if @genre_id || @media_type
+    base_scope = base_scope.joins(sale_items: :product) if @media_type
+    base_scope = base_scope.where(products: { media_type: @media_type }) if @media_type
+
+    if @genre_id
       base_scope = base_scope.joins(sale_items: { product: :genres })
-      
-      base_scope = base_scope.where(genres: { id: @genre_id }) if @genre_id
-      base_scope = base_scope.where(products: { media_type: @media_type }) if @media_type
+      base_scope = base_scope.where(genres: { id: @genre_id })
     end
 
-    # 4. Definición de scopes finales
+    # Definición de scopes finales
     @sales            = base_scope.where(cancelled: false).distinct # (ventas únicas)
     @sales_with_items = base_scope.where(cancelled: false).joins(:sale_items) # (se necesitan TODOS los ítems)
   end
