@@ -142,8 +142,17 @@ Por lo tanto, antes de ejecutar las seeds o iniciar el servidor, es indispensabl
 
 ### 1. Clonar repo
 
+Utilizando SSH:
+
 ```bash
-git clone <url>
+git clone git@github.com:ZoeEguaras/extension-ruby.git
+cd extension-ruby/Ruby
+```
+
+O utilizando HTTPS:
+
+```bash
+git clone https://github.com/ZoeEguaras/extension-ruby.git
 cd extension-ruby/Ruby
 ```
 
