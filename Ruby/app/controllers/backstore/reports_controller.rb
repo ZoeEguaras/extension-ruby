@@ -6,7 +6,7 @@ class Backstore::ReportsController < Backstore::BaseController
 
   def index
     @total_revenue         = @sales_with_items.sum("sale_items.quantity * sale_items.unit_price")
-    @total_sales           = @sales.distinct.count
+    @total_sales           = @sales.count
     @total_items           = @sales_with_items.sum("sale_items.quantity")
     @average_sale          = @total_sales.positive? ? (@total_revenue / @total_sales) : 0
     
@@ -81,10 +81,11 @@ class Backstore::ReportsController < Backstore::BaseController
     @genre_name = @genre_id.present? ? Genre.find_by(id: @genre_id)&.name : nil
   rescue ArgumentError
     @date_range = nil
+    flash.now[:alert] = "Fecha inválida"
   end
 
   def load_sales_scope
-    base_scope = Sale.includes(:sale_items)
+    base_scope = Sale.all
 
     # Filtro por rango de fechas
     if @date_range
@@ -95,8 +96,10 @@ class Backstore::ReportsController < Backstore::BaseController
     # Filtro por empleado
     base_scope = base_scope.where(employee_email: @employee) if @employee
 
-    base_scope = base_scope.joins(sale_items: :product) if @media_type
-    base_scope = base_scope.where(products: { media_type: @media_type }) if @media_type
+    if @media_type
+      base_scope = base_scope.joins(sale_items: :product)
+      base_scope = base_scope.where(products: { media_type: @media_type })
+    end
 
     if @genre_id
       base_scope = base_scope.joins(sale_items: { product: :genres })

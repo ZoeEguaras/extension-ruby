@@ -91,14 +91,14 @@ Desarrollado por Valentín Nuñez, Uziel Juárez Piñeiro y Zoe Eguaras
 
 ## Módulo de Reportes
 
-El sistema cuenta con una sección de reportes separada de la gestión de ventas, que ofrece gráficos claros, legibles y correctamente rotulados. Para su implementaciòn se hizo uso de **Chartkick** y **Groupdate**.
+El sistema cuenta con una sección de reportes separada de la gestión de ventas, que ofrece gráficos claros y legibles. Para su implementación se hizo uso de **Chartkick** y **Groupdate**.
 
-### Acceso y Permisos
+### Cómo acceder:
 1. **Ingresá a la aplicación** como administrador o gerente.
 2. **Accedé a la sección "Reportes"** desde el menú de administración (backstore).
 3. URL directa: `http://localhost:3000/backstore/reports`
 
-**Permisos requeridos:** Solo **Administradores** y **Gerentes** pueden acceder a esta sección.
+Solo **Administradores** y **Gerentes** pueden acceder a esta sección.
 
 ---
 
@@ -116,14 +116,14 @@ Los filtros se pueden **combinar entre sí** para un análisis más detallado y 
 
 #### Resumen numérico (Tarjetas)
 * **Total recaudado:** Suma de todas las ventas en dinero dentro del período.
-* **Cantidad de ventas realizadas:** Número total de transacciones activas.
+* **Cantidad de ventas realizadas:** Número total de ventas activas.
 * **Promedio de importe por venta:** Total recaudado / cantidad de ventas activas.
 * **Cantidad de productos vendidos:** Número total de ítems vendidos.
 
 #### Análisis visual (Gráficos interactivos)
-* **Ventas por tipo de producto:** Gráfico de pastel (Vinilo vs CD).
-* **Ventas por género musical:** Gráfico de columnas con cantidad de ventas por género.
-* **Top 5 productos más vendidos:** Gráfico de barras con los 5 productos con mayor volumen de salida.
+* **Ventas por tipo de producto:** Gráfico de pastel (Vinilo vs CD). Muestra cuántas ventas incluyen al menos un producto de cada tipo.
+* **Ventas por género musical:** Gráfico de columnas con cantidad de ventas por género. Muestra cuántas ventas incluyen al menos un producto de cada género.
+* **Top 5 productos más vendidos:** Gráfico de barras con los 5 productos con mayor volumen de venta.
 
 ## Requisitos Previos (Procesamiento de Imágenes)
 
@@ -180,10 +180,12 @@ La app queda disponible en:
 
 `http://localhost:3000`
 
-
 ## Generación de Datos de Prueba
 
-Al ejecutar el comando `db:seed` o configurar la base de datos, se puebla el sistema automáticamente para que los reportes y la tienda tengan datos funcionales e históricos.
+Al configurar la base de datos se puebla el sistema automáticamente para que los reportes y la tienda tengan datos funcionales.
+
+Si se desea reconstruir completamente la base de datos y volver a cargar todos los datos de prueba desde cero, puede ejecutarse: `bin/rails db:reset`.
+Este comando elimina la base de datos, vuelve a crearla, ejecuta las migraciones y carga nuevamente las seeds.
 
 ### Usuarios de prueba creados
 
@@ -196,6 +198,6 @@ Al ejecutar el comando `db:seed` o configurar la base de datos, se puebla el sis
 
 ### Datos adicionales autogenerados
 - **Géneros musicales:** Rock, Pop, Jazz, Metal, Electrónica, entre otros.
-- **Productos:** Varios vinilos y CDs asociados a diferentes géneros con portadas y galerías asignadas.
+- **Productos:** Varios vinilos y CDs asociados a diferentes géneros con portadas y audios asignados (cuando corresponde).
 - **Ventas:** Transacciones históricas asignadas a los empleados de prueba para alimentar los gráficos y métricas del módulo de reportes.
 
